@@ -28,29 +28,29 @@ function insuree(callback){
         
         ajax.getReq(constants.OPENIMIS_BASE_URL + "Patient/?format=json&page-offset="+index,
                     constants.auth_openIMIS,
-                    function(error,body,response){
-
-                        if (error){
-                            __logger.error("Failed to fetch Insuree. Offset="+index);
-
-                            importInsuree();
-                            return;
+                    processData);
+        
+        function processData(error,body,response){
+            if (error){
+                __logger.error("Failed to fetch Insuree. Offset="+index);
+                
+                importInsuree();
+                return;
+            }
+            
+            response = JSON.parse(response);
+            
+            if (response.resourceType == "OperationOutcome"){
+                if (response.issue.details.text == "Invalid page.");
+                callback(true);
+                return;
                         }
-
-                        response = JSON.parse(response);
-
-                        if (response.resourceType == "OperationOutcome"){
-                            if (response.issue.details.text == "Invalid page.");
-                            callback(true);
-                            return;
-                        }
-                        __logger.info("Fetched Insuree. Offset="+index);
-
-                        var insurees = response;
-
-                        importInsuree();
-                    });
-    
+            __logger.info("Fetched Insuree. Offset="+index);
+            
+            var insurees = response;
+            
+            importInsuree();
+        }
         
     }
     
