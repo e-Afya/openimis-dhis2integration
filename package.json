@@ -1,0 +1,28 @@
+{
+  "name": "openimis-dhis2integration",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hispindia/openimis-dhis2integration.git"
+  },
+  "author": "harsh",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hispindia/openimis-dhis2integration/issues"
+  },
+  "homepage": "https://github.com/hispindia/openimis-dhis2integration#readme",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cron": "^1.7.2",
+    "dhis2api": "^1.1.2",
+    "express": "^4.17.1",
+    "moment": "^2.24.0",
+    "request": "^2.88.0",
+    "winston": "^3.2.1"
+  }
+}
