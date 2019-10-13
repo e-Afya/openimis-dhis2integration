@@ -2,7 +2,7 @@ var CronJob = require('cron').CronJob;
 var moment = require("moment");
 var express = require('express');
 var importer = require('./importer');
-var dhis2metadata = require('./dhis2metadata');
+var dhis2api = require('./dhis2api');
 
 
 // Initialise
@@ -73,10 +73,23 @@ var job = new CronJob({
 
 function begin(){
 
-    dhis2metadata.getTrackerDes(function(des){
+    dhis2api.getTrackerDes(function(des){
         dataElements = des;
-        dhis2metadata.getTEAs(function(teas){
+        deFHIRMap = des.reduce(function(map,obj){
+            if (obj.name){
+                map[obj.name] = obj
+            }
+            return map;
+        },[]);
+        
+        dhis2api.getTEAs(function(teas){
             trackedEntityAttributes = teas;
+            teaFHIRMap = teas.reduce(function(map,obj){
+                if (obj.name){
+                    map[obj.name] = obj
+                }
+                return map;
+            },[]);
             new importer().init();
         })        
     })

@@ -1,9 +1,9 @@
-module.exports = new dhis2metadata();
+module.exports = new dhis2api();
 
 var ajax = require('./ajax');
 var constants = require('./constants');
 
-function dhis2metadata(){
+function dhis2api(){
 
     this.getTrackerDes = function(callback){
         ajax.getReq(constants.DHIS_BASE_URL + "dataElements?fields=id,name,code&paging=false",
@@ -29,6 +29,10 @@ function dhis2metadata(){
                     });        
     } 
 
+    this.importTEIs = function(teis,callback){
+        callback()
+        debugger
+    }
     
     
 }

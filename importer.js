@@ -11,6 +11,8 @@ function importer(){
 
         // import insuree
         new insureeimport(function(){
+            __logger.info("[ Post Insuree Import -> [] ]");
+
             debugger
         });
         

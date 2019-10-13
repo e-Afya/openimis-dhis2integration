@@ -1,0 +1,15 @@
+{
+
+    "dhis2" : {
+        "url" : "http://localhost:8080/dhis",
+        "username" : "",
+        "password" : ""
+    },
+
+    "openIMIS" : {
+        "url" : "http://localhost:8000/api/api_fhir",
+        "username" : "",
+        "password" : ""
+    }
+    
+}
