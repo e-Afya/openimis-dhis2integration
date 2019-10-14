@@ -76,23 +76,42 @@ function begin(){
     dhis2api.getTrackerDes(function(des){
         dataElements = des;
         deFHIRMap = des.reduce(function(map,obj){
-            if (obj.name){
-                map[obj.name] = obj
+            if (obj.code){
+                map[obj.code] = obj
             }
             return map;
         },[]);
+
+        fetchTEAs();
         
+    })
+
+    function fetchTEAs(){
         dhis2api.getTEAs(function(teas){
             trackedEntityAttributes = teas;
             teaFHIRMap = teas.reduce(function(map,obj){
-                if (obj.name){
-                    map[obj.name] = obj
+                if (obj.code){
+                    map[obj.code] = obj
+                }
+                return map;
+            },[]);
+            fetchOrgUnits();
+        })       
+    }
+    
+    function fetchOrgUnits(){
+        dhis2api.getTEAs(function(ous){
+            ous = ous;
+            orgUnitFHIRMap = ous.reduce(function(map,obj){
+                if (obj.code){
+                    map[obj.code] = obj
                 }
                 return map;
             },[]);
             new importer().init();
-        })        
-    })
+        
+        })         
+    }
     
 }
 

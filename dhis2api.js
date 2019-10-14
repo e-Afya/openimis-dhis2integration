@@ -29,6 +29,18 @@ function dhis2api(){
                     });        
     } 
 
+    this.getOrgUnits = function(callback){
+        ajax.getReq(constants.DHIS_BASE_URL + "organisationUnits?fields=id,name,code&paging=false",
+                    constants.auth,
+                    function(error,body,response){
+                        if (error){
+                            callback(null);
+                            return;
+                        }
+                        callback(JSON.parse(response).organisationUnits)                        
+                    });        
+    }
+    
     this.importTEIs = function(teis,callback){
         callback()
         debugger
