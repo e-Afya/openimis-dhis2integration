@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 
 
 /** Set Up Logging
- */ var winston = require('winston');
+  var winston = require('winston');
 global.__logger = winston.createLogger({
     level : 'silly',
     transports: [
@@ -44,6 +44,36 @@ global.__logger = winston.createLogger({
             filename: './logs/server.log',
             timestamp: true
         })
+    ]
+});
+*/
+const {transports, createLogger, format } = require('winston');
+const winston = require('winston');
+ let alignColorsAndTime = winston.format.combine(
+        winston.format.colorize({
+            all:true
+        }),
+        winston.format.label({
+            label:'[LOGGER]'
+        }),
+        winston.format.timestamp({
+            format:"YY-MM-DD HH:mm:ss"
+        }),
+     winston.format.prettyPrint(),
+
+        winston.format.printf(
+            info => ` ${info.label}  ${info.timestamp}  ${info.level} : ${info.message}`
+        )
+    );
+
+global.__logger = createLogger({
+    level:"silly",
+    format: winston.format.combine(winston.format.colorize(), alignColorsAndTime),
+    
+    transports: [
+        new transports.Console(),
+        new transports.File({filename: 'logs/error.log', level: 'error'}),
+        new transports.File({filename: 'logs/activity.log', level:'info'})
     ]
 });
 /**
@@ -73,7 +103,13 @@ var job = new CronJob({
 
 function begin(){
 
-    dhis2api.getTrackerDes(function(des){
+    dhis2api.getTrackerDes(function(error,des){
+        if (error){
+            __logger.error("Fetch De Error:"+error);
+            return;
+        }
+
+        __logger.info("[ Fetched Data Elements ]");
         dataElements = des;
         deFHIRMap = des.reduce(function(map,obj){
             if (obj.code){
@@ -88,6 +124,8 @@ function begin(){
 
     function fetchTEAs(){
         dhis2api.getTEAs(function(teas){
+            __logger.info("[ Fetched Tracked Entity Attributes ]");
+       
             trackedEntityAttributes = teas;
             teaFHIRMap = teas.reduce(function(map,obj){
                 if (obj.code){
@@ -100,7 +138,9 @@ function begin(){
     }
     
     function fetchOrgUnits(){
-        dhis2api.getTEAs(function(ous){
+        dhis2api.getOrgUnits(function(ous){
+            __logger.info("[ Fetched Org Units ]");
+       
             ous = ous;
             orgUnitFHIRMap = ous.reduce(function(map,obj){
                 if (obj.code){

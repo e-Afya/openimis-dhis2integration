@@ -3,8 +3,9 @@ module.exports = insuree;
 var ajax = require('./ajax');
 var constants = require('./constants');
 var converters = require('./converters');
-var dhis2api = require('./dhis2api');
 
+var dhis2api = require('./dhis2api');
+var dhis2db = require('./postgres-service');
 
 function* indexGenerator(n){
     for (var i=1;i<n;i++){
@@ -49,7 +50,8 @@ function begin(totalInsurees,callback){
             callback(true);
             return;
         };var index = _index.value;
-        
+
+        var indexKey = "("+index +")";
         ajax.getReq(constants.OPENIMIS_BASE_URL + "Patient/?format=json&page-offset="+index,
                     constants.auth_openIMIS,
                     processData);
@@ -57,7 +59,6 @@ function begin(totalInsurees,callback){
         function processData(error,body,response){
             if (error){
                 __logger.error("Failed to fetch Insuree. Offset="+index);
-                
                 importInsuree();
                 return;
             }
@@ -65,17 +66,54 @@ function begin(totalInsurees,callback){
             response = JSON.parse(response);
             
             if (response.resourceType == "OperationOutcome"){
-                if (response.issue.details.text == "Invalid page.");
+                __logger.error(indexKey+"Insuree OperationOutcome");
+
+                if (response.issue.details.text == "Invalid page."){
+                    __logger.error(indexKey+"Insuree Invalid Page");
+                }
                 //show error
                 return;
             }
-            __logger.info("Fetched Insuree. Offset="+index);
-            
-            var teis = converters.insurees2teis(response);
-            dhis2api.importTEIs(teis,function(){
-                importInsuree();
+            __logger.debug("Fetched Insuree. Offset="+index);
 
+         //   viaAPI(response);
+            viaDB(index,response);
+          
+        }
+
+        function viaAPI(response){
+            var teis = converters.api.insurees2teis(response);
+            
+            dhis2api.importTEIs(teis,function(error,response){
+                
+                if (error){
+                    __logger.error(indexKey+"TEI push failed");
+                    importInsuree();
+                    return;
+                }
+                
+                __logger.info(indexKey+ dhis2api.parseResponse(response));
+                
+                importInsuree();
+                
             });
+        }
+
+        function viaDB(index,response){
+            var q = converters.db.insurees2teis(index,response);
+            dhis2db.runQuery(q,function(error,res){
+                if (error){
+                    __logger.error(indexKey+"[DB] teiEnrollment Insert");
+                    __logger.debug(JSON.stringify(error));
+                    importInsuree();
+                    return;
+                }
+
+                __logger.info(indexKey+"[DB] teiEnrollment Insert");
+                
+                importInsuree();
+            })
+
         }
     }        
 }
