@@ -1,4 +1,5 @@
-module.exports = insuree;
+module.exports = insuree_policy;
+
 
 var ajax = require('./ajax');
 var constants = require('./constants');
@@ -13,17 +14,19 @@ function* indexGenerator(n){
     }
 }
 
-function insuree(callback){
+function insuree_policy(callback){
     preImportFetch(function(totalInsurees){
         begin(totalInsurees,callback);
     });    
 }
-function preImportFetch(callback){    
-    ajax.getReq(constants.OPENIMIS_BASE_URL + "Patient/?format=json&page-offset=1",
+
+function preImportFetch(callback){
+    
+    ajax.getReq(constants.OPENIMIS_BASE_URL + "InsureePolicy/?format=json&page-offset=1",
                 constants.auth_openIMIS,
                 function(error,body,response){
                     if (error){
-                        __logger.error("Failed to fetch preimport data. Aborting.");                        
+                        __logger.error("[Insuree Policy]Failed to fetch preimport data. Aborting.");                        
                         return;
                     }
                     callback(JSON.parse(response).total)
@@ -49,13 +52,13 @@ function begin(totalInsurees,callback){
         };var index = _index.value;
 
         var indexKey = "("+index +")";
-        ajax.getReq(constants.OPENIMIS_BASE_URL + "Patient/?format=json&page-offset="+index,
+        ajax.getReq(constants.OPENIMIS_BASE_URL + "InsureePolicy/?format=json&page-offset="+index,
                     constants.auth_openIMIS,
                     processData);
         
         function processData(error,body,response){
             if (error){
-                __logger.error("Failed to fetch Insuree. Offset="+index);
+                __logger.error("Failed to fetch Insuree Policy. Offset="+index);
                 importInsuree();
                 return;
             }
@@ -63,22 +66,23 @@ function begin(totalInsurees,callback){
             response = JSON.parse(response);
             
             if (response.resourceType == "OperationOutcome"){
-                __logger.error(indexKey+"Insuree OperationOutcome");
+                __logger.error(indexKey+"InsureePolicy OperationOutcome");
 
                 __logger.error(indexKey+JSON.stringify(response));
                 //show error
                 return;
             }
-            __logger.debug("Fetched Insuree. Offset="+index);
+            __logger.debug("Fetched Insuree Policy. Offset="+index);
 
-           viaAPI(response);
-          // viaDB(index,response);
+            viaAPI(response);
+         //   viaDB(index,response);
           
         }
 
         function viaAPI(response){
-            var teis = converters.api.insurees2teis(response);
             
+            var events = converters.insureePolicy.api.insureepolicy2events(response);
+            debugger
             dhis2api.importTEIs(teis,function(error,response){
                 
                 if (error){
@@ -96,7 +100,6 @@ function begin(totalInsurees,callback){
 
         function viaDB(index,response){
             var q = converters.db.insurees2teis(index,response);
-            //__logger.info(q)
             dhis2db.runQuery(q,function(error,res){
                 if (error){
                     __logger.error(indexKey+"[DB] teiEnrollment Insert");

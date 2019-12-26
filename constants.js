@@ -17,16 +17,23 @@ exports.pg_params = {
 }
 
 /*** Settings related to multithreading ***/
-exports.Parallel_Insuree_Fetch = 5;
+exports.Parallel_Insuree_Fetch = 1;
 
 
 /*** FHIR Configuration Setting ***/
+/** Insuree **/
 exports.FHIR_Insuree_isHead = "isHead";
-exports.FHIR_Insuree_Location = "patientLocation";
+exports.FHIR_Insuree_Location = "locationCode";
 exports.FHIR_Insuree_RegistrationDate = "registrationDate";
 
-/*** FHIR Logic Control  ***/
-exports.FHIR_LC_Identifier_Insuree = "identifier_SB";
+/** Insuree Policy **/
+exports.FHIR_InsureePolicy_policyStatus = "PatientPolicyStatus";
+exports.FHIR_InsureePolicy_policyStage = "PatientPolicyStage";
+exports.FHIR_InsureePolicy_policyProduct = "PatientPolicyProduct";
+exports.FHIR_InsureePolicy_patientStartDate = "PatientStartDate";
+exports.FHIR_InsureePolicy_patientPolicyInsureeID = "PatientPolicyInsureeID";
+
+
 
 
 /*** DHIS2 Metadata Settings ***/

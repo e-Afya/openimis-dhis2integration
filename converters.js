@@ -1,12 +1,13 @@
 module.exports = new converters();
 
 var constants = require('./constants');
-var utility = require('./utility');
 var moment = require('moment');
 var Q = require('./queries');
 
 function converters(){
 
+    this.insureePolicy = require('./converters/insuree_policy');
+    
     this.api = {};
 
     this.db = {};
@@ -29,8 +30,8 @@ function converters(){
     }
     
     function _insuree2teis(insurees){
-         var teis = {trackedEntityInstances : []};
-
+        var teis = {trackedEntityInstances : []};
+        
         teis.trackedEntityInstances = insurees.entry.reduce(function(list,obj){
             
             var tei = makeTEI(obj);
@@ -53,17 +54,21 @@ function converters(){
             }
 
             /*** Make UID ***/            
-            tei.trackedEntityInstance = "I"+insuree.resource.id.toString().padStart(10,"0");
+            tei.trackedEntityInstance = "I"+insuree.resource.id.substr(-10);
             
             /** Convert Extensions ***/
             var extensions = insuree.resource.extension; 
             for (var i=0;i < extensions.length;i++){
+                
                 var obj = extensions[i];
-                switch(obj.id){
+                var key = obj.url.split("/").pop();
+                switch(key){
                 case constants.FHIR_Insuree_isHead :
                     addAttr(tei,obj.id,obj.valueBoolean);
+                    
                     break
                 case constants.FHIR_Insuree_Location:
+                    
                     var ou = orgUnitFHIRMap[obj.valueString];
                     if (!ou){
                         __logger.info("Org Unit Missing with Code="+obj.valueString);
@@ -75,9 +80,10 @@ function converters(){
                     break;
                 case constants.FHIR_Insuree_RegistrationDate:
                     var date = moment(obj.valueString).toISOString();
-                    
+                //    __logger.debug("DATE - "+obj.valueString);
                     tei.registrationDate = date;
                     tei.enrollments[0].enrollmentDate = date;
+                    
                 }
             }
             

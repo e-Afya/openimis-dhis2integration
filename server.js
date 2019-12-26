@@ -1,8 +1,8 @@
 var CronJob = require('cron').CronJob;
+var argv = require('yargs').argv;
 var moment = require("moment");
 var express = require('express');
 var importer = require('./importer');
-var dhis2api = require('./dhis2api');
 
 
 // Initialise
@@ -31,22 +31,6 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 }));
 
 
-/** Set Up Logging
-  var winston = require('winston');
-global.__logger = winston.createLogger({
-    level : 'silly',
-    transports: [
-        new (winston.transports.Console)({
-            colorize: true,
-            timestamp: true
-        }),
-        new (winston.transports.File)({
-            filename: './logs/server.log',
-            timestamp: true
-        })
-    ]
-});
-*/
 const {transports, createLogger, format } = require('winston');
 const winston = require('winston');
  let alignColorsAndTime = winston.format.combine(
@@ -78,7 +62,7 @@ global.__logger = createLogger({
 });
 /**
  */
-
+/*
 var server = app.listen(8020, function () {
     var host = server.address().address
     var port = server.address().port
@@ -88,8 +72,6 @@ var server = app.listen(8020, function () {
 })
 
 
-
-__logger.info("Starting service");
 var job = new CronJob({
     cronTime: '00 59 13 * * *',
     onTick: function() {
@@ -97,63 +79,26 @@ var job = new CronJob({
         begin();
     },
     start: false,
-    runOnInit : true
+    runOnInit : false
 });
 
+//job.start();
 
-function begin(){
+*/
 
-    dhis2api.getTrackerDes(function(error,des){
-        if (error){
-            __logger.error("Fetch De Error:"+error);
-            return;
-        }
+__logger.info("Starting service");
 
-        __logger.info("[ Fetched Data Elements ]");
-        dataElements = des;
-        deFHIRMap = des.reduce(function(map,obj){
-            if (obj.code){
-                map[obj.code] = obj
-            }
-            return map;
-        },[]);
-
-        fetchTEAs();
-        
-    })
-
-    function fetchTEAs(){
-        dhis2api.getTEAs(function(teas){
-            __logger.info("[ Fetched Tracked Entity Attributes ]");
-       
-            trackedEntityAttributes = teas;
-            teaFHIRMap = teas.reduce(function(map,obj){
-                if (obj.code){
-                    map[obj.code] = obj
-                }
-                return map;
-            },[]);
-            fetchOrgUnits();
-        })       
-    }
-    
-    function fetchOrgUnits(){
-        dhis2api.getOrgUnits(function(ous){
-            __logger.info("[ Fetched Org Units ]");
-       
-            ous = ous;
-            orgUnitFHIRMap = ous.reduce(function(map,obj){
-                if (obj.code){
-                    map[obj.code] = obj
-                }
-                return map;
-            },[]);
-            new importer().init();
-        
-        })         
-    }
-    
+switch(argv.model){
+case 'claim' : new importer().claim();
+    break;
+case 'insuree' : new importer().insuree();
+    break;
+case 'insureePolicy' :
+    break;
+case 'all' :
+    break;
+default : __logger.info("No Models specified ");
+    break;
 }
 
-job.start();
 

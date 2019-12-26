@@ -1,4 +1,4 @@
-module.exports = insuree;
+module.exports = claim;
 
 var ajax = require('./ajax');
 var constants = require('./constants');
@@ -13,13 +13,14 @@ function* indexGenerator(n){
     }
 }
 
-function insuree(callback){
-    preImportFetch(function(totalInsurees){
-        begin(totalInsurees,callback);
+function claim(callback){
+    preImportFetch(function(totalClaims){
+        begin(totalClaims,callback);
     });    
 }
+
 function preImportFetch(callback){    
-    ajax.getReq(constants.OPENIMIS_BASE_URL + "Patient/?format=json&page-offset=1",
+    ajax.getReq(constants.OPENIMIS_BASE_URL + "ClaimResponse/?format=json&page-offset=1",
                 constants.auth_openIMIS,
                 function(error,body,response){
                     if (error){
@@ -30,16 +31,16 @@ function preImportFetch(callback){
                 });
 }
 
-function begin(totalInsurees,callback){
-    var indexG = indexGenerator(totalInsurees);
+function begin(totalClaims,callback){
+    var indexG = indexGenerator(totalClaims);
     
-    __logger.info("[ Starting Insuree Import ]");
+    __logger.info("[ Starting Claim Import ]");
 
     for (var i=0;i<constants.Parallel_Insuree_Fetch;i++){
-        importInsuree();
+        importClaim();
     }
     
-    function importInsuree(){
+    function importClaim(){
 
         var _index = indexG.next();
         if (_index.done){
@@ -49,27 +50,27 @@ function begin(totalInsurees,callback){
         };var index = _index.value;
 
         var indexKey = "("+index +")";
-        ajax.getReq(constants.OPENIMIS_BASE_URL + "Patient/?format=json&page-offset="+index,
+        ajax.getReq(constants.OPENIMIS_BASE_URL + "ClaimResponse/?format=json&page-offset="+index,
                     constants.auth_openIMIS,
                     processData);
         
         function processData(error,body,response){
             if (error){
-                __logger.error("Failed to fetch Insuree. Offset="+index);
-                importInsuree();
+                __logger.error("Failed to fetch Claim. Offset="+index);
+                importClaim();
                 return;
             }
             
             response = JSON.parse(response);
             
             if (response.resourceType == "OperationOutcome"){
-                __logger.error(indexKey+"Insuree OperationOutcome");
+                __logger.error(indexKey+"Claim OperationOutcome");
 
                 __logger.error(indexKey+JSON.stringify(response));
                 //show error
                 return;
             }
-            __logger.debug("Fetched Insuree. Offset="+index);
+            __logger.debug("Fetched Claim. Offset="+index);
 
            viaAPI(response);
           // viaDB(index,response);
@@ -77,39 +78,24 @@ function begin(totalInsurees,callback){
         }
 
         function viaAPI(response){
+            debugger
             var teis = converters.api.insurees2teis(response);
             
             dhis2api.importTEIs(teis,function(error,response){
                 
                 if (error){
                     __logger.error(indexKey+"TEI push failed");
-                    importInsuree();
+                    importClaim();
                     return;
                 }
                 
                 __logger.info(indexKey+ dhis2api.parseResponse(response));
                 
-                importInsuree();
+                importClaim();
                 
             });
         }
 
-        function viaDB(index,response){
-            var q = converters.db.insurees2teis(index,response);
-            //__logger.info(q)
-            dhis2db.runQuery(q,function(error,res){
-                if (error){
-                    __logger.error(indexKey+"[DB] teiEnrollment Insert");
-                    __logger.debug(JSON.stringify(error));
-                    importInsuree();
-                    return;
-                }
-
-                __logger.info(indexKey+"[DB] teiEnrollment Insert");
-                
-                importInsuree();
-            })
-
-        }
+        
     }        
 }

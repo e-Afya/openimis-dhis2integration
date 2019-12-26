@@ -13,10 +13,10 @@ function dhis2api(){
     }
 
     this.parseResponse = function(response){
-        debugger
+        
         var msg = "";
         var res = response.response;
-        msg = `[${response.status} ${response.httpStatusCode}] [total: ${res.total}, Imported: ${res.imported}, Updated:${res.updated} ]`;
+        msg = `[${response.status} ${response.httpStatusCode}] [total: ${response.total}, Imported: ${response.imported}, Updated:${response.updated} ]`;
         
         return msg;
     }

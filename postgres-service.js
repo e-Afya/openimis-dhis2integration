@@ -6,6 +6,8 @@ var constants = require("./constants");
 function postgresqlService(){
 
     this.runQuery = function(query,callback){
+      //  __logger.debug((query));
+
         var connection = new Client (constants.pg_params);
 	connection.connect();
 	connection.query(query,(err, res) => {            
@@ -46,7 +48,7 @@ function postgresqlService(){
 						 dvs_row.sourceid
 						);
 		}
-	//	console.log(query)
+		__logger.debug((query));
 		connection.query(query,(err, res) => {
 		    callback(err, res, res?res.rows:null);
 debugger		})

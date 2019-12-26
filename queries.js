@@ -135,7 +135,27 @@ BEGIN
 
  
 
-	        --	RAISE NOTICE 'Saved cluster  %...%', c,tei;
+    INSERT INTO public.trackedentityprogramowner
+	(trackedentityprogramownerid, trackedentityinstanceid, programid, created, lastupdated, organisationunitid, createdby)
+	VALUES(nextval('hibernate_sequence'), tei, r.programid, now(), now(),r.organisationunitid,'admin')
+  	ON CONFLICT ON CONSTRAINT uk_tei_program
+		DO update set
+						lastupdated=now();
+
+		  		
+    INSERT INTO public.programstageinstance(
+                                        programstageinstanceid, uid, code, created, lastupdated, createdatclient, 
+									    lastupdatedatclient, lastsynchronized, programinstanceid, programstageid, attributeoptioncomboid, 
+									    deleted, storedby, duedate, executiondate, organisationunitid, 
+									    status, completedby, completeddate, geometry, eventdatavalues, assigneduserid)
+							values      (nextval('hibernate_sequence'), r.teiuid, null, now(), now(), now(), 
+										now(),now(), enrollment, 1589, 20, 
+										false, 'admin', r.edate, r.edate , r.organisationunitid, 
+										'COMPLETED', 'admin', r.edate, null, '{"NAdBLHAdOGv": {"value": "SHSDC Non-Poor", "created": "2019-11-08T16:04:04.586", "storedBy": "admin", "lastUpdated": "2019-11-08T16:04:04.586", "providedElsewhere": false}}'::jsonb ,null)
+    ON CONFLICT ON CONSTRAINT uk_gy44hufdeduoma7eeh3j6abm7
+	DO update set
+			organisationunitid = r.organisationunitid,
+			lastupdated=now();
 	        
 	        END LOOP;
 	
